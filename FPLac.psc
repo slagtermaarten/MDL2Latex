@@ -18,7 +18,7 @@ R2:
 
 R3:
     {2}R > R2
-    (k2R)/(VEcoli * Na) * R * (R-1)
+    k2R/(VEcoli * Na) * R * (R-1)
     
 R4:
     R2 > {2}R
@@ -26,7 +26,7 @@ R4:
 
 R5:
     R2 + O > R2O
-    (kr)/(VEcoli * Na) * R2 * O
+    kr/(VEcoli * Na) * R2 * O
 
 R6:
     R2O > {2}R+O
@@ -34,7 +34,7 @@ R6:
 
 R7:
     {2}I + R2> I2R2
-    (kdr1)/(VEcoli * Na * VEcoli * Na) * R2 * I * (I-1)
+    kdr1/(VEcoli * Na * VEcoli * Na) * R2 * I * (I-1)
 
 R8:
     I2R2 + O > {2}I + R2O
@@ -42,11 +42,11 @@ R8:
 
 R9:
     {2}I + R2O > I2R2 + O
-    (kdr2)/(VEcoli * Na * VEcoli * Na) * R2O * I * (I-1)
+    kdr2 /(VEcoli * Na * VEcoli * Na) * R2O * I * (I-1)
     
 R10:
     I2R2 + O > {2}I + R2O
-    (kdr2b)/(VEcoli * Na) * I2R2 *O
+    kdr2b /(VEcoli * Na) * I2R2 *O
 
 R11:
     O > O + MY
@@ -122,7 +122,7 @@ R28:
 
 R29:
     FP + Bu > FP + Bm
-    (kcFP)/(Na * VEcoli) * FP * Bu
+    kcFP/(Na * VEcoli) * FP * Bu
 
 R30:
     FP > $pool
@@ -167,7 +167,7 @@ ksFP      = 30
 lMFP      = 0.462
 lFP       = 0.2
 
-# Initial values
+# Initialvalues
 MR        =  0
 R         =  40
 MY        =  0

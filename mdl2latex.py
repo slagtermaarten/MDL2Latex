@@ -9,107 +9,19 @@ from django.template import Template, Context
 # Define dictionary of user definable substitutions which will be given
 # the highest substitution priority
 customsubs = {
-'VEcoli' : r'\text{V}_{\text{Ecoli}}',
-'Na' : r'\text{N}_{\text{A}}',
-'NA' : r'\text{N}_{\text{A}}',
-'FP' : r'\text{FP}',
-'Iex' : r'\text{I}_{\text{ex}}',
-'YIex' : r'\text{YI}_{\text{ex}}',
-'>': r'\rightarrow',
-r'*': r'\times', 
-r'+': '+',
-r'$pool' : '\oslash',
-r'l' : '\lambda'
+    'VEcoli' : r'\text{V}_{\text{Ecoli}}',
+    'Na' : r'\text{N}_{\text{A}}',
+    'NA' : r'\text{N}_{\text{A}}',
+    'FP' : r'\text{FP}',
+    'Iex' : r'\text{I}_{\text{ex}}',
+    'YIex' : r'\text{YI}_{\text{ex}}',
+    '>': r'\rightarrow',
+    r'*': r'\times', 
+    r'+': '+',
+    r'-': '-',
+    r'$pool' : '\oslash',
+    r'l' : '\lambda'
 }
-
-def assignmentparse(li):
-    """ Process lines of format 'key = val' with a variable amount of
-    spacing"""
-
-    var = li.split('=')
-    stripped = [x.replace(' ','') for x in var]
-
-    return stripped
-
-def parsefile(filename):
-    """Parse psc-file and store in file structure"""
-
-    # Dictionary with reaction number as key, [[reaction], [propensity]] as
-    # value
-    reactionslist = []
-    parmslist = []
-    initslist = []
-
-    reactionmode = False
-    parmmode = False
-    initmode = False
-
-    inputfile = open(filename,'r')
-    lines = inputfile.readlines()
-
-    for line in lines:
-        sline = line.strip('\n')
-        # if len(sline) == 1:
-            # continue
-        if sline == '':
-            continue
-
-        # Determine type of parser required for following lines
-        parsetype = re.match("#\s*(\w+)",line)
-
-        # Parse according to one of three parsing types
-        if parsetype != None:
-            if parsetype.group(1) == "Reactions":
-                reactionmode = True
-                parmmode = False
-                initmode = False
-            if parsetype.group(1) == "Parameters":
-                reactionmode = False
-                parmmode = True
-                initmode = False
-            if parsetype.group(1) == "Initialvalues":
-                reactionmode = False
-                parmmode = False
-                initmode = True
-            continue
-
-        if reactionmode == True:
-            m = reactionnum.match(line)
-            try:
-                curreaction = int(m.group('num'))
-                reactionslist.append([])
-                logging.debug(curreaction)
-                continue
-            except:
-                pass
-
-            # Parse reaction if fraction
-            if not fractdetect.search(line) == None:
-                processfract(line.replace('\n',''))
-            else:
-                units = [x.replace('\n','') for x in line.split(" ") if x != '']
-                if len(units) != 1:
-                    reactionslist[(curreaction-1)].append(units)
-
-        elif parmmode == True:
-            parmslist.append(assignmentparse(sline))
-
-        elif initmode == True:
-            initslist.append(assignmentparse(sline))
-
-        else:
-            pass
-    
-    return reactionslist, parmslist, initslist
-
-def pline(line):
-    return [latexify(x) for x in line.split(' ') if x != '']
-
-def processfract(line):
-    fract = fractdivide.match(line)
-    num = pline(fract.group(1))
-    denum = pline(fract.group(2))
-    rest = pline(fract.group(3))
 
 reactionnum = re.compile(r"""
 ^R
@@ -126,40 +38,182 @@ singleletter = re.compile(r"(\w)")
 
 stoichfind = re.compile(r"{(\d+)}(\w+)")
 
-fractdetect = re.compile(r"/")
+fractdetect = re.compile(r".+/.+")
+
+# test2 = test[:-10]
+# test2
+# fractdivide.match(test2).group(1)
 
 fractdivide = re.compile(r"""
-((?P<num>\w+))
+(?P<num>[a-zA-Z\*\d]+)
 \s?/\s?
-((?P<denom>.+))
+\((?P<denom>.+)\)
+\s?
+(?P<rest>.+)?
 """, re.VERBOSE)
 
+# fractdivide.match(string).group(3)
+
+parsetype = re.compile("\#\s*(\w+)")
+
+numberdetect = re.compile('(\d\.?\d*)')
+
+minfind = re.compile(r'\((\w+)([-\+]\d)\)')
+
+def parsefile(filehandle):
+    """Parse psc-file and store in file structure"""
+
+    # Dictionary with reaction number as key, [[reaction], [propensity]] as
+    # value
+    reactionsdict, parmslist, initslist = {}, [], []
+
+    reactionmode, parmmode, initmode = False, False, False
+    equationmode, propmode = False, False
+
+    lines = filehandle.readlines()
+
+    for line in lines:
+        sline = line.strip('\n')
+
+        if sline == '':
+            continue
+
+        # Determine type of parser required for following lines
+        ptype = parsetype.match(line)
+
+        # Parse according to one of three parsing types
+        if ptype != None:
+            # print parsetype.group(1)
+            # print reactionmode,parmmode,initmode
+            if ptype.group(1) in ["Reactions",'reacts']:
+                reactionmode,parmmode,initmode = True,False,False
+            if ptype.group(1) in ["Parameters",'parms']:
+                reactionmode,parmmode,initmode = False,True,False
+            if ptype.group(1) in ["Initialvalues",'ics']:
+                reactionmode,parmmode,initmode = False,False,True
+            else:
+                # Single lines starting with # are matched for parsetype, but
+                # do not affect the program due to above logic
+                pass
+            continue
+
+        if reactionmode == True:
+            m = reactionnum.match(line)
+            try:
+                curreaction = int(m.group('num'))
+                reactionsdict[curreaction] = []
+                equationmode, propmode = True, False
+                # Next line is going to be an equation
+                continue
+            except:
+                pass
+
+            if equationmode == True:
+                logging.debug(sline)
+                # Process line regular way, as there are never fractions in the
+                # reactions, no need to test for it
+                temp = equify(processreg(sline))
+                reactionsdict[curreaction].append(temp)
+                # Next line is going to be a propensity
+                equationmode, propmode = False, True
+                continue
+
+            if propmode == True:
+               # Parse propensity if fraction
+                if not fractdetect.match(line) == None:
+                    temp = equify(processfract(sline))
+                    print curreaction, temp
+                    reactionsdict[curreaction].append(temp)
+
+                # Parse reaction as if not containing fraction
+                else:
+                    temp = equify(processreg(sline))
+                    reactionsdict[curreaction].append(temp)
+                continue
+
+                # Next line should be another reaction number
+                equationmode, propmode = False, False
+
+        elif parmmode == True:
+            parmslist.append(assignmentparse(sline))
+
+        elif initmode == True:
+            initslist.append(assignmentparse(sline))
+
+        else:
+            pass
+    
+    return reactionsdict, parmslist, initslist
+
+def equify(string):
+    if string is not None:
+        return "$ "+string+" $"
+    return None
+
+def assignmentparse(li):
+    """ Process lines of format 'key = val' with a variable amount of
+    spacing"""
+
+    # Remove trailing comments
+    li = re.sub('\s+\#.+$','',li)
+
+    # Split line at "=" sign
+    var = li.split('=')
+
+    # Remove empty space in between
+    stripped = [latexify(x.replace(' ','')) for x in var]
+    # return '$'+' '.join(stripped)
+    return stripped
+
+
+def processreg(line):
+    if fractdetect.match(line) is not None:
+        return processfract(line)
+    else:
+        latexified = [latexify(x) for x in line.split(' ') if x != '']
+        return ' '.join(latexified)
+
+def processfract(line):
+    split = line.split('/')
+    num =  split[0]
+    ind = split[1].index(')')
+    denum = split[1][1:(ind)]
+
+    fdenum = processreg(denum)
+    fnum = processreg(num)
+
+    result =  r'\frac{'+fnum+r'}{'+fdenum+r'}'
+
+    try:
+        rest = processreg(split[1][(ind+1):])
+        result+=rest
+    except:
+        pass
+
+    return result
 
 def latexify(item):
     if customsubs.has_key(item):
         return customsubs[item]
 
-    if not fractdetect.search(item) == None:
-        m = fractdivide.match(item) 
-        num = [latexify(x) for x in m.group('num').split(' ')] 
-        denom = [latexify(x) for x in m.group('denom').split(' ')] 
-        joinednum = ' '.join(num)
-        joineddenom = ' '.join(denom)
-        res =  r'\frac{'+joinednum+'}{'+joineddenom+'}'
-        return res
-
     kval = kdetect.search(item)
     try:
-        return r'\text{'+latexify(kval.group('type'))+r'}_{\text{'+kval.group('subscript')+'}}'
+        return latexify(kval.group('type'))+r'_{\text{'+kval.group('subscript')+'}}'
     except:
         pass
 
     try:
-        re.match('\w').group(0)
-        return(r'\text{'+item+r'}')
+        minus = minfind.match(item)
+        return(r'(\text{'+minus.group(1)+r'}'+minus.group(2)+')')
     except:
         pass
 
+    try:
+        number = numberdetect.match(item)
+        return(r'$'+number.group(0)+r'$')
+    except:
+        pass
+    
     try:
         single = singleletter.match(item)
         return(r'\text{'+single.group(0)+'}')
@@ -186,55 +240,41 @@ def latexify(item):
     except:
         pass
 
-    # if item.startswith('\w'):
-        # return re.sub(r'(\d)',r'_{\1}',item)
-
-    # if re.match('\w',item):
-    #     return(r'\text{'+item+r'}')
-    # re.sub('r(?P<letter>\w)','(?
-
-def stringify(inputli):
-    temp = ' '.join(inputli)
-    return r'\begin{equation} '+temp+r' \end{equation}'
-
-def formatreactions(reactionslist):
-    reactlist, proplist = [],[]
-
-    for rnum in reactionslist:
-        logging.debug(rnum)
-        reaction = [latexify(x) for x in rnum[0] if x != '']
-        prop  = [latexify(x) for x in rnum[1] if x != '']
-
-        reactlist.append(stringify(reaction))
-        proplist.append(stringify(prop))
-
-    return reactlist, proplist
+def renderlatex():
+    pass
 
 if __name__ == '__main__':
-    # parsefile -> 
-    reactionslist, parmslist, initslist = \
-    parsefile('/home/maarten/Dropbox/igem_dropbox/Stochpy/pscmodels/FPLac.psc')
-    reactlist, proplist = formatreactions(reactionslist)
-    final = []
-    for i in xrange(len(reactlist)):
-        final.append(reactlist[i])
-        final.append(proplist[i])
+    django.conf.settings.configure()
 
-    formattedfinal = '\n'.join(final)
-    print formattedfinal
-    exit()
+    try:
+        inputfile = open(str(sys.argv[1]),'r')
+    except:
+        logging.info("Specify input file, default is currently used")
+        inputfile = open('FPLac.psc','r')
 
-    latextemplate = r"""
-    \documentclass[a4paper]{article}
-    \usepackage{amsmath}
-    \begin{document}
-    \author{iGEM Amsterdam}
-    \title{Test}
-    \maketitle
-    """ +formattedfinal+ """
-    \end{document}
-    """
+    try:
+        title, author = str(sys.argv[2]), str(sys.argv[3])
+    except:
+        logging.info("Specify title and author of output file, defaults are used")
+        title, author = "Mymodel", "Maarten" 
 
-    with open('output.tex','w') as output:
-        output.write(latextemplate)
-    os.system('pdflatex output.tex')
+    reactionsdict, parmslist, initslist =  parsefile(inputfile)
+    reactionslist = []
+    for key in sorted(reactionsdict.keys()):
+        reactionslist.append(reactionsdict[key][:2])
+        
+    pp(reactionslist)
+    # exit()
+    # pp(initslist)
+    # pp(parmslist)
+
+    with open("template.tex") as f:
+        t = Template(f.read())
+
+    c = Context({"reactions":reactionslist, "parms":parmslist,
+        "inits":initslist, "modeltitle": title, "author": author})
+    output = t.render(c)
+    strippedoutput = re.sub(r'\n[ \t]*(?=\n)','',output)
+
+    with open("model.tex", 'w') as out_f:
+        out_f.write(strippedoutput)

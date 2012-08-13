@@ -1,20 +1,24 @@
 \documentclass[11pt]{article}
+\usepackage[]{amsmath}
 
 \begin{document}
+
 \title{
-{% title %}
+{{title}}
 }
 \author{
-{% author %}
+{{author}}
 }
 \maketitle
+
+\section{Reactions}
 
 \begin{table}
     \centering
     \begin{tabular}{l|r}
     Equation & Propensity \\
     \hline
-    {% for equation in equations %}
+    {% for equation in reactions %}
         {% for cell in equation %}
             {{cell}}
             {% if not forloop.last %} 
@@ -29,14 +33,18 @@
     \label{tab:equations}
 \end{table}
 
+\section{Parameters}
+
 \begin{table}
     \centering
-    \begin{tabular}{l|r}
+    \begin{tabular}{r|l}
     Rateconstant & Value \\
     \hline
-    {% for rate in rates %}
-        {% for cell in rates %}
-            {{cell}}
+    {% for parm in parms %}
+        {% for cell in parm %}
+            $ 
+            {{cell}} 
+            $
             {% if not forloop.last %} 
                &
             {% endif %}
@@ -45,18 +53,22 @@
     {% endfor %}
     \hline
     \end{tabular}
-    \caption{Rates}
+    \caption{Parameters}
     \label{tab:rates}
 \end{table}
 
+\section{Initial species values}
+
 \begin{table}
     \centering
-    \begin{tabular}{l|r}
+    \begin{tabular}{r|l}
     Initial species amount & Value \\
     \hline
-    {% for iv in initialvalues %}
+    {% for iv in inits %}
         {% for cell in iv %}
-            {{cell}}
+            $ 
+            {{cell}} 
+            $
             {% if not forloop.last %} 
                &
             {% endif %}
@@ -70,5 +82,3 @@
 \end{table}
 
 \end{document}
-
-
