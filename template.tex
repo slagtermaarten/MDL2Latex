@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+
+\begin{document}
+\title{
+{% title %}
+}
+\author{
+{% author %}
+}
+\maketitle
+
+\begin{table}
+    \centering
+    \begin{tabular}{l|r}
+    Equation & Propensity \\
+    \hline
+    {% for equation in equations %}
+        {% for cell in equation %}
+            {{cell}}
+            {% if not forloop.last %} 
+               &
+            {% endif %}
+        {% endfor %}
+        \\
+    {% endfor %}
+    \hline
+    \end{tabular}
+    \caption{Equations and propensities}
+    \label{tab:equations}
+\end{table}
+
+\begin{table}
+    \centering
+    \begin{tabular}{l|r}
+    Rateconstant & Value \\
+    \hline
+    {% for rate in rates %}
+        {% for cell in rates %}
+            {{cell}}
+            {% if not forloop.last %} 
+               &
+            {% endif %}
+        {% endfor %}
+        \\
+    {% endfor %}
+    \hline
+    \end{tabular}
+    \caption{Rates}
+    \label{tab:rates}
+\end{table}
+
+\begin{table}
+    \centering
+    \begin{tabular}{l|r}
+    Initial species amount & Value \\
+    \hline
+    {% for iv in initialvalues %}
+        {% for cell in iv %}
+            {{cell}}
+            {% if not forloop.last %} 
+               &
+            {% endif %}
+        {% endfor %}
+        \\
+    {% endfor %}
+    \hline
+    \end{tabular}
+    \caption{Initial values}
+    \label{tab:initialvalues}
+\end{table}
+
+\end{document}
+
+
