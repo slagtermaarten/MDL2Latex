@@ -1,27 +1,26 @@
-import re
+import re, sys
 import logging
 import os
 logging.basicConfig(level=logging.DEBUG)
 from pprint import pprint as pp
 import django
 from django.template import Template, Context
+import json
 
 # Define dictionary of user definable substitutions which will be given
 # the highest substitution priority
-customsubs = {
+regsubs = {
     'VEcoli' : r'\text{V}_{\text{Ecoli}}',
     'Na' : r'\text{N}_{\text{A}}',
     'NA' : r'\text{N}_{\text{A}}',
-    'FP' : r'\text{FP}',
-    'Iex' : r'\text{I}_{\text{ex}}',
-    'YIex' : r'\text{YI}_{\text{ex}}',
     '>': r'\rightarrow',
-    r'*': r'\times', 
+    r'*': r' . ', 
     r'+': '+',
     r'-': '-',
     r'$pool' : '\oslash',
     r'l' : '\lambda'
 }
+
 
 reactionnum = re.compile(r"""
 ^R
@@ -30,19 +29,15 @@ reactionnum = re.compile(r"""
 \s*$
 """, re.VERBOSE)
 
-kdetect = re.compile(r"(?P<type>[k|m|M|l])_?(?P<subscript>\w+)")
+kdetect = re.compile(r"(?P<type>[k|m|M|l|S|s])_?(?P<subscript>\w+)")
 
 rdetect = re.compile(r"\w+")
 
-singleletter = re.compile(r"(\w)")
+word = re.compile(r"(\w)+")
 
 stoichfind = re.compile(r"{(\d+)}(\w+)")
 
 fractdetect = re.compile(r".+/.+")
-
-# test2 = test[:-10]
-# test2
-# fractdivide.match(test2).group(1)
 
 fractdivide = re.compile(r"""
 (?P<num>[a-zA-Z\*\d]+)
@@ -51,8 +46,6 @@ fractdivide = re.compile(r"""
 \s?
 (?P<rest>.+)?
 """, re.VERBOSE)
-
-# fractdivide.match(string).group(3)
 
 parsetype = re.compile("\#\s*(\w+)")
 
@@ -85,11 +78,11 @@ def parsefile(filehandle):
         if ptype != None:
             # print parsetype.group(1)
             # print reactionmode,parmmode,initmode
-            if ptype.group(1) in ["Reactions",'reacts']:
+            if ptype.group(1).lower() in ["reactions",'reacts','equations','eqs']:
                 reactionmode,parmmode,initmode = True,False,False
-            if ptype.group(1) in ["Parameters",'parms']:
+            if ptype.group(1).lower() in ["parameters",'parms','initpar']:
                 reactionmode,parmmode,initmode = False,True,False
-            if ptype.group(1) in ["Initialvalues",'ics']:
+            if ptype.group(1).lower() in ["initialvalues",'ics','initvar','initials']:
                 reactionmode,parmmode,initmode = False,False,True
             else:
                 # Single lines starting with # are matched for parsetype, but
@@ -119,10 +112,11 @@ def parsefile(filehandle):
                 continue
 
             if propmode == True:
-               # Parse propensity if fraction
+                # Substitute all '*' for ' * '
+                sline = re.sub('\*',' * ',sline)
+                # Parse propensity if fraction
                 if not fractdetect.match(line) == None:
                     temp = equify(processfract(sline))
-                    print curreaction, temp
                     reactionsdict[curreaction].append(temp)
 
                 # Parse reaction as if not containing fraction
@@ -193,12 +187,19 @@ def processfract(line):
     return result
 
 def latexify(item):
-    if customsubs.has_key(item):
-        return customsubs[item]
+    # First try and match the 'word' with a key in one of two substitution
+    # dicts
+    if regsubs.has_key(item):
+        return regsubs[item]
+
+    if usersubs:
+        if usersubs.has_key(item):
+            return usersubs[item]
 
     kval = kdetect.search(item)
     try:
-        return latexify(kval.group('type'))+r'_{\text{'+kval.group('subscript')+'}}'
+        return latexify(kval.group('type'))+r'_{\text{'+kval.group('subscript')\
+                +'}}'
     except:
         pass
 
@@ -215,7 +216,7 @@ def latexify(item):
         pass
     
     try:
-        single = singleletter.match(item)
+        single = word.match(item)
         return(r'\text{'+single.group(0)+'}')
     except:
         pass
@@ -240,41 +241,52 @@ def latexify(item):
     except:
         pass
 
-def renderlatex():
-    pass
-
 if __name__ == '__main__':
     django.conf.settings.configure()
 
+    # Parse command line options, stick to defaults if absent
     try:
-        inputfile = open(str(sys.argv[1]),'r')
+        inputfilename = str(sys.argv[1])
+        inputfile = open(inputfilename,'r')
     except:
         logging.info("Specify input file, default is currently used")
-        inputfile = open('FPLac.psc','r')
+        inputfilename = 'DecayingDimerizing.psc'
+        inputfile = open(inputfilename,'r')
 
     try:
         title, author = str(sys.argv[2]), str(sys.argv[3])
     except:
-        logging.info("Specify title and author of output file, defaults are used")
-        title, author = "Mymodel", "Maarten" 
+        logging.info("Specify title and author of output file, defaults are",
+                "used")
+        title, author = inputfilename[:-4], "Maarten" 
 
-    reactionsdict, parmslist, initslist =  parsefile(inputfile)
+    try: 
+        usersubs = json.loads(open('usersubs.txt','r').read())
+        logging.debug(usersubs)
+    except Exception as e:
+        logging.debug(e)
+        logging.info("No custom subs found, please place in 'usersubs.txt'")
+
+    outputfilename = inputfilename[:-4]+'.tex'
+
+    # Parse inputfile
+    reactionsdict, parmslist, initslist = parsefile(inputfile)
+
+    # Convert dict to list for easy usage in the Django template...
     reactionslist = []
     for key in sorted(reactionsdict.keys()):
         reactionslist.append(reactionsdict[key][:2])
         
-    pp(reactionslist)
-    # exit()
-    # pp(initslist)
-    # pp(parmslist)
-
+    # Parse data structure to .tex format and write to output file
     with open("template.tex") as f:
         t = Template(f.read())
 
     c = Context({"reactions":reactionslist, "parms":parmslist,
         "inits":initslist, "modeltitle": title, "author": author})
     output = t.render(c)
+    # Remove empty lines, introduced by the Django template
     strippedoutput = re.sub(r'\n[ \t]*(?=\n)','',output)
 
-    with open("model.tex", 'w') as out_f:
+    logging.debug(outputfilename)
+    with open(outputfilename, 'w') as out_f:
         out_f.write(strippedoutput)

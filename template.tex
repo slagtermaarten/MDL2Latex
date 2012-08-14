@@ -4,16 +4,16 @@
 \begin{document}
 
 \title{
-{{title}}
+{{modeltitle}}
 }
 \author{
 {{author}}
 }
 \maketitle
 
-\section{Reactions}
-
-\begin{table}
+\section{Model description}
+\subsection{Reactions \& propensities}
+\begin{table}[h]
     \centering
     \begin{tabular}{l|r}
     Equation & Propensity \\
@@ -27,15 +27,14 @@
         {% endfor %}
         \\
     {% endfor %}
-    \hline
     \end{tabular}
     \caption{Equations and propensities}
     \label{tab:equations}
 \end{table}
 
-\section{Parameters}
 
-\begin{table}
+\subsection{Parameters}
+\begin{table}[h]
     \centering
     \begin{tabular}{r|l}
     Rateconstant & Value \\
@@ -51,15 +50,13 @@
         {% endfor %}
         \\
     {% endfor %}
-    \hline
     \end{tabular}
     \caption{Parameters}
     \label{tab:rates}
 \end{table}
 
-\section{Initial species values}
-
-\begin{table}
+\subsection{Initial species values}
+\begin{table}[h]
     \centering
     \begin{tabular}{r|l}
     Initial species amount & Value \\
@@ -75,7 +72,6 @@
         {% endfor %}
         \\
     {% endfor %}
-    \hline
     \end{tabular}
     \caption{Initial values}
     \label{tab:initialvalues}

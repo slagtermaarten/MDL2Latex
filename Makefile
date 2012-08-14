@@ -1,10 +1,16 @@
-MDLfile=FPlac.psc
+MDLfile=CellDivision
 
-all: model.pdf
+all: $(MDLfile).pdf
+
+$(MDLfile).pdf: $(MDLfile).tex
+	pdflatex $(MDLfile).tex
+
+$(MDLfile).tex: template.tex mdl2latex.py $(MDFfile).psc
+	python mdl2latex.py $(MDLfile).psc
+
+$(MDFfile).psc:
+
+clean:
 	rm *.log *.aux *.pyc
+	rm *.pdf
 
-model.pdf: model.tex
-	pdflatex $<
-
-model.tex: template.tex mdl2latex.py
-	python mdl2latex.py $(MDLfile)
