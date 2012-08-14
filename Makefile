@@ -11,6 +11,8 @@ $(MDLfile).tex: template.tex mdl2latex.py $(MDFfile).psc
 $(MDFfile).psc:
 
 clean:
-	rm *.log *.aux *.pyc
+	rm *.log 
+	rm *.aux 
+	rm *.pyc
 	rm *.pdf
 

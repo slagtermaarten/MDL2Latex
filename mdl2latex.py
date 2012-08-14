@@ -14,7 +14,7 @@ regsubs = {
     'Na' : r'\text{N}_{\text{A}}',
     'NA' : r'\text{N}_{\text{A}}',
     '>': r'\rightarrow',
-    r'*': r' . ', 
+    r'*': r'\cdot', 
     r'+': '+',
     r'-': '-',
     r'$pool' : '\oslash',
