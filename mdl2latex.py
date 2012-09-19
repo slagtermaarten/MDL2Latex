@@ -272,16 +272,11 @@ if __name__ == '__main__':
     # Parse inputfile
     reactionsdict, parmslist, initslist = parsefile(inputfile)
 
-    # Convert dict to list for easy usage in the Django template...
-    reactionslist = list(reactionsdict.values())
-    # for key in sorted(reactionsdict.keys()):
-    #     reactionslist.append(reactionsdict[key][:2])
-        
     # Parse data structure to .tex format and write to output file
     with open("template.tex") as f:
         t = Template(f.read())
 
-    c = Context({"reactions":reactionslist, "parms":parmslist,
+    c = Context({"reactions":list(reactionsdict.values()), "parms":parmslist,
         "inits":initslist, "modeltitle": title, "author": author})
     output = t.render(c)
 
