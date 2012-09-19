@@ -1,18 +1,13 @@
-MDLfile=CellDivision
+MDLfile=~/Stochpy/igemmodels/FPspeed
 
 all: $(MDLfile).pdf
 
 $(MDLfile).pdf: $(MDLfile).tex
 	pdflatex $(MDLfile).tex
 
-$(MDLfile).tex: template.tex mdl2latex.py $(MDFfile).psc
+$(MDLfile).tex: template.tex mdl2latex.py
 	python mdl2latex.py $(MDLfile).psc
-
-$(MDFfile).psc:
 
 clean:
 	rm *.log 
 	rm *.aux 
-	rm *.pyc
-	rm *.pdf
-

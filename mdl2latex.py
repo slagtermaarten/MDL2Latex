@@ -6,6 +6,7 @@ from pprint import pprint as pp
 import django
 from django.template import Template, Context
 import json
+home = os.getenv('home')
 
 # Define dictionary of user definable substitutions which will be given
 # the highest substitution priority
@@ -55,7 +56,6 @@ minfind = re.compile(r'\((\w+)([-\+]\d)\)')
 
 def parsefile(filehandle):
     """Parse psc-file and store in file structure"""
-
     # Dictionary with reaction number as key, [[reaction], [propensity]] as
     # value
     reactionsdict, parmslist, initslist = {}, [], []
@@ -250,7 +250,7 @@ if __name__ == '__main__':
         inputfile = open(inputfilename,'r')
     except:
         logging.info("Specify input file, default is currently used")
-        inputfilename = 'DecayingDimerizing.psc'
+        inputfilename = 'Stochpy/pscmodels/DecayingDimerizing.psc'
         inputfile = open(inputfilename,'r')
 
     try:
@@ -273,9 +273,9 @@ if __name__ == '__main__':
     reactionsdict, parmslist, initslist = parsefile(inputfile)
 
     # Convert dict to list for easy usage in the Django template...
-    reactionslist = []
-    for key in sorted(reactionsdict.keys()):
-        reactionslist.append(reactionsdict[key][:2])
+    reactionslist = list(reactionsdict.values())
+    # for key in sorted(reactionsdict.keys()):
+    #     reactionslist.append(reactionsdict[key][:2])
         
     # Parse data structure to .tex format and write to output file
     with open("template.tex") as f:
@@ -284,9 +284,10 @@ if __name__ == '__main__':
     c = Context({"reactions":reactionslist, "parms":parmslist,
         "inits":initslist, "modeltitle": title, "author": author})
     output = t.render(c)
+
     # Remove empty lines, introduced by the Django template
     strippedoutput = re.sub(r'\n[ \t]*(?=\n)','',output)
 
-    logging.debug(outputfilename)
+    logging.debug("Outputting to %s" % outputfilename)
     with open(outputfilename, 'w') as out_f:
         out_f.write(strippedoutput)

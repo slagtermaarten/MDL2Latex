@@ -1,5 +1,5 @@
 \documentclass[11pt]{article}
-\usepackage[]{amsmath}
+\usepackage{amsmath}
 
 \begin{document}
 
@@ -15,8 +15,9 @@
 \subsection{Reactions \& propensities}
 \begin{table}[h]
     \centering
+    \caption{\small Equations and propensities}
     \begin{tabular}{l|r}
-    Equation & Propensity \\
+    {\bf Reaction } & {\bf Propensity } \\
     \hline
     {% for equation in reactions %}
         {% for cell in equation %}
@@ -28,7 +29,6 @@
         \\
     {% endfor %}
     \end{tabular}
-    \caption{Equations and propensities}
     \label{tab:equations}
 \end{table}
 
@@ -36,8 +36,9 @@
 \subsection{Parameters}
 \begin{table}[h]
     \centering
+    \caption{\small Parameters}
     \begin{tabular}{r|l}
-    Rateconstant & Value \\
+    {\bf Rate constant } & {\bf Value } \\
     \hline
     {% for parm in parms %}
         {% for cell in parm %}
@@ -51,15 +52,15 @@
         \\
     {% endfor %}
     \end{tabular}
-    \caption{Parameters}
     \label{tab:rates}
 \end{table}
 
 \subsection{Initial species values}
 \begin{table}[h]
     \centering
+    \caption{\small Initial values}
     \begin{tabular}{r|l}
-    Initial species amount & Value \\
+    {\bf Initial species amount } & {\bf Value } \\
     \hline
     {% for iv in inits %}
         {% for cell in iv %}
@@ -73,7 +74,6 @@
         \\
     {% endfor %}
     \end{tabular}
-    \caption{Initial values}
     \label{tab:initialvalues}
 \end{table}
 
