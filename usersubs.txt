@@ -1,0 +1,4 @@
+{
+    "Iex": "\\text{I}_{\\text{ex}}", 
+    "YIex": "\\text{YI}_{\\text{ex}}"
+}
