@@ -1,4 +1,4 @@
-MDLfile=~/Stochpy/igemmodels/FPspeed
+MDLfile=reduced1
 
 all: $(MDLfile).pdf
 

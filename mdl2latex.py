@@ -22,7 +22,6 @@ regsubs = {
     r'l' : '\lambda'
 }
 
-
 reactionnum = re.compile(r"""
 ^R
 (?P<num>\d+)
@@ -82,7 +81,7 @@ def parsefile(filehandle):
                 reactionmode,parmmode,initmode = True,False,False
             if ptype.group(1).lower() in ["parameters",'parms','initpar']:
                 reactionmode,parmmode,initmode = False,True,False
-            if ptype.group(1).lower() in ["initialvalues",'ics','initvar','initials']:
+            if ptype.group(1).lower() in ["initialvalues",'ics','initvar','initials','initial values']:
                 reactionmode,parmmode,initmode = False,False,True
             else:
                 # Single lines starting with # are matched for parsetype, but
@@ -189,12 +188,12 @@ def processfract(line):
 def latexify(item):
     # First try and match the 'word' with a key in one of two substitution
     # dicts
+    # logging.debug(item)
     if regsubs.has_key(item):
         return regsubs[item]
 
-    if usersubs:
-        if usersubs.has_key(item):
-            return usersubs[item]
+    if usersubs.has_key(item):
+        return usersubs[item]
 
     kval = kdetect.search(item)
     try:
@@ -243,7 +242,6 @@ def latexify(item):
 
 if __name__ == '__main__':
     django.conf.settings.configure()
-
     # Parse command line options, stick to defaults if absent
     try:
         inputfilename = str(sys.argv[1])
@@ -266,6 +264,7 @@ if __name__ == '__main__':
     except Exception as e:
         logging.debug(e)
         logging.info("No custom subs found, please place in 'usersubs.txt'")
+        usersubs = dict()
 
     outputfilename = inputfilename[:-4]+'.tex'
 

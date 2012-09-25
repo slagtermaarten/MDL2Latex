@@ -7,7 +7,8 @@ It does this by 'LaTeXifying' every single term in your reactions to a LaTeX rep
 
 Instructions
 ------------
-Simply edit the .psc-file path in the first line of the Makefile and run `make`
+Edit the `Makefile` inside of the root folder and change the PSCfile variable to the filepath of the the .psc (MDL model) file you want to convert. N.B. exclude .psc file extension!
+Then run `make`
 
 ## Fractions in propensities ##
 If the propensities in your functions contain fractions, place them in the beginnning of the propensity definition. Only this way, they will be rendered correctly
@@ -21,5 +22,5 @@ Supply your own mappings in the file `usersubs.txt` and they will be granted pri
 
 Dependencies
 ------------
-Requires UNIX-utility make, Django for templating.
+Requires UNIX-utility make, Django for templatingStargazers github.
 Has been successfully tested in various Linux environments.

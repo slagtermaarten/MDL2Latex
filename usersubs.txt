@@ -1,4 +1,7 @@
 {
     "Iex": "\\text{I}_{\\text{ex}}", 
-    "YIex": "\\text{YI}_{\\text{ex}}"
+    "YIex": "\\text{YI}_{\\text{ex}}",
+    "R2O": "\\text{R}_{2}\\text{O}",
+    "PlasM": "\\text{PlasM}",
+    "PlasU": "\\text{PlasU}"
 }
